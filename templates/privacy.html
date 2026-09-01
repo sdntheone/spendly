@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy Policy — Spendly{% endblock %}
+
+{% block head %}
+<style>
+    .legal {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 4rem 1.5rem 6rem;
+    }
+    .legal-title {
+        font-family: var(--font-display);
+        font-size: clamp(2rem, 4vw, 2.75rem);
+        color: var(--ink);
+        margin-bottom: 0.5rem;
+    }
+    .legal-updated {
+        font-size: 0.9rem;
+        color: var(--ink-muted);
+        margin-bottom: 2.5rem;
+    }
+    .legal h2 {
+        font-family: var(--font-display);
+        font-size: 1.35rem;
+        color: var(--ink);
+        margin: 2.25rem 0 0.75rem;
+    }
+    .legal p {
+        font-size: 0.95rem;
+        color: var(--ink-muted);
+        line-height: 1.7;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="legal">
+    <h1 class="legal-title">Privacy Policy</h1>
+    <p class="legal-updated">Last updated: September 1, 2026</p>
+
+    <h2>Data We Collect</h2>
+    <p>
+        When you create a Spendly account, we collect basic information
+        such as your name and email address. As you use the app, we also
+        store the expense records you enter, including amounts,
+        categories, dates, and descriptions.
+    </p>
+
+    <h2>How We Use Your Data</h2>
+    <p>
+        Your data is used solely to provide the core functionality of
+        Spendly — logging expenses, generating spending summaries, and
+        maintaining your account. We do not sell your personal data or
+        expense records to third parties.
+    </p>
+
+    <h2>Data Storage</h2>
+    <p>
+        Your information is stored in our database with reasonable
+        technical safeguards in place to protect it from unauthorized
+        access, alteration, or loss. While we take security seriously,
+        no method of storage or transmission over the internet is
+        completely secure.
+    </p>
+
+    <h2>Third Party Services</h2>
+    <p>
+        Spendly may rely on trusted third-party providers for
+        infrastructure such as hosting and email delivery. These
+        providers only receive the minimum data necessary to perform
+        their function and are not permitted to use it for their own
+        purposes.
+    </p>
+
+    <h2>Contact Us</h2>
+    <p>
+        If you have questions about this Privacy Policy or how your data
+        is handled, please reach out to us through the contact details
+        provided on your account page.
+    </p>
+</section>
+{% endblock %}
