@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Terms and Conditions — Spendly{% endblock %}
+
+{% block head %}
+<style>
+    .legal {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 4rem 1.5rem 6rem;
+    }
+    .legal-title {
+        font-family: var(--font-display);
+        font-size: clamp(2rem, 4vw, 2.75rem);
+        color: var(--ink);
+        margin-bottom: 0.5rem;
+    }
+    .legal-updated {
+        font-size: 0.9rem;
+        color: var(--ink-muted);
+        margin-bottom: 2.5rem;
+    }
+    .legal h2 {
+        font-family: var(--font-display);
+        font-size: 1.35rem;
+        color: var(--ink);
+        margin: 2.25rem 0 0.75rem;
+    }
+    .legal p {
+        font-size: 0.95rem;
+        color: var(--ink-muted);
+        line-height: 1.7;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="legal">
+    <h1 class="legal-title">Terms and Conditions</h1>
+    <p class="legal-updated">Last updated: September 1, 2026</p>
+
+    <h2>Acceptance of Terms</h2>
+    <p>
+        By accessing or using Spendly, you agree to be bound by these Terms
+        and Conditions. If you do not agree with any part of these terms,
+        please do not use the service.
+    </p>
+
+    <h2>Use of Service</h2>
+    <p>
+        Spendly is provided for personal, non-commercial use to help you
+        track and understand your own expenses. You agree to use the
+        service only for lawful purposes and not to misuse, disrupt, or
+        attempt to gain unauthorized access to any part of the platform.
+    </p>
+
+    <h2>User Data</h2>
+    <p>
+        Any expense records, account details, or other information you
+        submit to Spendly are used solely to provide and improve the
+        service. You are responsible for the accuracy of the data you
+        enter and for keeping your account credentials secure.
+    </p>
+
+    <h2>Limitations of Liability</h2>
+    <p>
+        Spendly is provided "as is" without warranties of any kind. We are
+        not liable for any financial decisions made based on information
+        in the app, nor for any indirect, incidental, or consequential
+        damages arising from your use of the service.
+    </p>
+
+    <h2>Changes to Terms</h2>
+    <p>
+        We may update these Terms and Conditions from time to time. Continued
+        use of Spendly after changes are posted constitutes acceptance of the
+        revised terms.
+    </p>
+</section>
+{% endblock %}
