@@ -6,7 +6,7 @@ Raw sqlite3 (stdlib) only — no ORM. All SQL uses parameterized (?) placeholder
 import calendar
 import os
 import sqlite3
-from datetime import date
+from datetime import date, datetime
 
 from werkzeug.security import generate_password_hash
 
@@ -94,6 +94,114 @@ def get_user_by_email(email):
         return conn.execute(
             "SELECT * FROM users WHERE email = ?", (email,)
         ).fetchone()
+    finally:
+        conn.close()
+
+
+def _format_member_since(created_at_text):
+    """Format a SQLite 'YYYY-MM-DD HH:MM:SS' string as 'Month YYYY'."""
+    dt = datetime.strptime(created_at_text.split(" ")[0], "%Y-%m-%d")
+    return dt.strftime("%B %Y")
+
+
+def get_user_by_id(user_id):
+    """Return a dict with the user's name, email, initials, and formatted
+    member-since date, or None if no such user exists."""
+    conn = get_db()
+    try:
+        row = conn.execute(
+            "SELECT id, name, email, created_at FROM users WHERE id = ?",
+            (user_id,),
+        ).fetchone()
+        if row is None:
+            return None
+        initials = "".join(part[0].upper() for part in row["name"].split()[:2])
+        return {
+            "id": row["id"],
+            "name": row["name"],
+            "email": row["email"],
+            "initials": initials,
+            "created_at": _format_member_since(row["created_at"]),
+        }
+    finally:
+        conn.close()
+
+
+def get_summary_stats(user_id):
+    """Return total spent, transaction count, and top category for a user.
+    Returns zeros / '—' if the user has no expenses."""
+    conn = get_db()
+    try:
+        total_row = conn.execute(
+            "SELECT COALESCE(SUM(amount), 0) AS total, COUNT(*) AS n "
+            "FROM expenses WHERE user_id = ?",
+            (user_id,),
+        ).fetchone()
+        top_row = conn.execute(
+            "SELECT category, SUM(amount) AS cat_total FROM expenses "
+            "WHERE user_id = ? GROUP BY category ORDER BY cat_total DESC LIMIT 1",
+            (user_id,),
+        ).fetchone()
+        return {
+            "total_spent": round(total_row["total"], 2),
+            "transaction_count": total_row["n"],
+            "top_category": top_row["category"] if top_row else "—",
+        }
+    finally:
+        conn.close()
+
+
+def get_recent_transactions(user_id, limit=10):
+    """Return the user's most recent expenses, newest first."""
+    conn = get_db()
+    try:
+        rows = conn.execute(
+            "SELECT date, description, category, amount FROM expenses "
+            "WHERE user_id = ? ORDER BY date DESC, id DESC LIMIT ?",
+            (user_id, limit),
+        ).fetchall()
+        return [
+            {
+                "date": r["date"],
+                "description": r["description"],
+                "category": r["category"],
+                "amount": r["amount"],
+            }
+            for r in rows
+        ]
+    finally:
+        conn.close()
+
+
+def get_category_breakdown(user_id):
+    """Return per-category totals as integer percentages of the user's
+    overall spend, ordered by total descending. Percentages always sum to
+    exactly 100 — the largest-spend category absorbs the rounding remainder.
+    Returns [] if the user has no expenses."""
+    conn = get_db()
+    try:
+        rows = conn.execute(
+            "SELECT category, SUM(amount) AS total FROM expenses "
+            "WHERE user_id = ? GROUP BY category ORDER BY total DESC",
+            (user_id,),
+        ).fetchall()
+        if not rows:
+            return []
+
+        totals = [(r["category"], r["total"]) for r in rows]
+        grand_total = sum(total for _, total in totals)
+
+        floored = [(cat, int(total / grand_total * 100)) for cat, total in totals]
+        remainder = 100 - sum(pct for _, pct in floored)
+
+        largest_category = totals[0][0]
+        return [
+            {
+                "category": cat,
+                "pct": pct + remainder if cat == largest_category else pct,
+            }
+            for cat, pct in floored
+        ]
     finally:
         conn.close()
 
