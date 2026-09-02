@@ -3,7 +3,17 @@ import sqlite3
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash
 
-from database.db import create_user, get_db, get_user_by_email, init_db, seed_db
+from database.db import (
+    create_user,
+    get_category_breakdown,
+    get_db,
+    get_recent_transactions,
+    get_summary_stats,
+    get_user_by_email,
+    get_user_by_id,
+    init_db,
+    seed_db,
+)
 
 app = Flask(__name__)
 app.secret_key = "dev-secret-key"
@@ -90,37 +100,13 @@ def profile():
     if not session.get("user_id"):
         return redirect(url_for("login"))
 
-    user = {
-        "name": "Demo User",
-        "initials": "DU",
-        "email": "demo@spendly.com",
-        "created_at": "August 2026",
-    }
+    user_id = session["user_id"]
+    user = get_user_by_id(user_id)
+    summary = get_summary_stats(user_id)
 
-    summary = {
-        "total_spent": 290.44,
-        "transaction_count": 8,
-        "top_category": "Bills",
-    }
+    transactions = get_recent_transactions(user_id)
 
-    transactions = [
-        {"date": "2026-08-25", "description": "Groceries", "category": "Food", "amount": 32.20},
-        {"date": "2026-08-21", "description": "Miscellaneous", "category": "Other", "amount": 10.00},
-        {"date": "2026-08-17", "description": "New shoes", "category": "Shopping", "amount": 60.75},
-        {"date": "2026-08-13", "description": "Movie ticket", "category": "Entertainment", "amount": 15.00},
-        {"date": "2026-08-10", "description": "Pharmacy", "category": "Health", "amount": 25.00},
-        {"date": "2026-08-07", "description": "Electricity bill", "category": "Bills", "amount": 89.99},
-    ]
-
-    breakdown = [
-        {"category": "Food", "total": 44.70, "pct": 50},
-        {"category": "Transport", "total": 45.00, "pct": 50},
-        {"category": "Bills", "total": 89.99, "pct": 100},
-        {"category": "Health", "total": 25.00, "pct": 28},
-        {"category": "Entertainment", "total": 15.00, "pct": 17},
-        {"category": "Shopping", "total": 60.75, "pct": 68},
-        {"category": "Other", "total": 10.00, "pct": 11},
-    ]
+    breakdown = get_category_breakdown(user_id)
 
     return render_template(
         "profile.html",
