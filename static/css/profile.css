@@ -52,6 +52,22 @@
 
 .profile-stats { margin-bottom: 0; }
 
+/* Date filter */
+
+.date-filter-form {
+    display: flex;
+    align-items: flex-end;
+    gap: 1rem;
+    background: var(--paper-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+}
+
+.date-filter-form .form-group {
+    margin-bottom: 0;
+}
+
 .profile-panel {
     background: var(--paper-card);
     border: 1px solid var(--border);
@@ -134,5 +150,10 @@
     .profile-card {
         flex-direction: column;
         text-align: center;
+    }
+
+    .date-filter-form {
+        flex-direction: column;
+        align-items: stretch;
     }
 }

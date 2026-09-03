@@ -127,20 +127,34 @@ def get_user_by_id(user_id):
         conn.close()
 
 
-def get_summary_stats(user_id):
+def _date_range_clause(user_id, start_date, end_date):
+    """Build a WHERE-clause fragment and params list for an optional
+    inclusive date range filter, always including user_id first."""
+    if start_date and end_date:
+        return " AND date BETWEEN ? AND ?", [user_id, start_date, end_date]
+    return "", [user_id]
+
+
+def get_summary_stats(user_id, start_date=None, end_date=None):
     """Return total spent, transaction count, and top category for a user.
-    Returns zeros / '—' if the user has no expenses."""
+    Returns zeros / '—' if the user has no expenses.
+
+    If start_date and end_date are both given (YYYY-MM-DD), results are
+    limited to that inclusive date range."""
     conn = get_db()
     try:
+        date_filter, params = _date_range_clause(user_id, start_date, end_date)
+
         total_row = conn.execute(
             "SELECT COALESCE(SUM(amount), 0) AS total, COUNT(*) AS n "
-            "FROM expenses WHERE user_id = ?",
-            (user_id,),
+            "FROM expenses WHERE user_id = ?" + date_filter,
+            params,
         ).fetchone()
         top_row = conn.execute(
             "SELECT category, SUM(amount) AS cat_total FROM expenses "
-            "WHERE user_id = ? GROUP BY category ORDER BY cat_total DESC LIMIT 1",
-            (user_id,),
+            "WHERE user_id = ?" + date_filter +
+            " GROUP BY category ORDER BY cat_total DESC LIMIT 1",
+            params,
         ).fetchone()
         return {
             "total_spent": round(total_row["total"], 2),
@@ -151,14 +165,21 @@ def get_summary_stats(user_id):
         conn.close()
 
 
-def get_recent_transactions(user_id, limit=10):
-    """Return the user's most recent expenses, newest first."""
+def get_recent_transactions(user_id, start_date=None, end_date=None, limit=10):
+    """Return the user's most recent expenses, newest first.
+
+    If start_date and end_date are both given (YYYY-MM-DD), results are
+    limited to that inclusive date range."""
     conn = get_db()
     try:
+        date_filter, params = _date_range_clause(user_id, start_date, end_date)
+        params.append(limit)
+
         rows = conn.execute(
             "SELECT date, description, category, amount FROM expenses "
-            "WHERE user_id = ? ORDER BY date DESC, id DESC LIMIT ?",
-            (user_id, limit),
+            "WHERE user_id = ?" + date_filter +
+            " ORDER BY date DESC, id DESC LIMIT ?",
+            params,
         ).fetchall()
         return [
             {
@@ -173,17 +194,23 @@ def get_recent_transactions(user_id, limit=10):
         conn.close()
 
 
-def get_category_breakdown(user_id):
+def get_category_breakdown(user_id, start_date=None, end_date=None):
     """Return per-category totals as integer percentages of the user's
     overall spend, ordered by total descending. Percentages always sum to
     exactly 100 — the largest-spend category absorbs the rounding remainder.
-    Returns [] if the user has no expenses."""
+    Returns [] if the user has no expenses.
+
+    If start_date and end_date are both given (YYYY-MM-DD), results are
+    limited to that inclusive date range."""
     conn = get_db()
     try:
+        date_filter, params = _date_range_clause(user_id, start_date, end_date)
+
         rows = conn.execute(
             "SELECT category, SUM(amount) AS total FROM expenses "
-            "WHERE user_id = ? GROUP BY category ORDER BY total DESC",
-            (user_id,),
+            "WHERE user_id = ?" + date_filter +
+            " GROUP BY category ORDER BY total DESC",
+            params,
         ).fetchall()
         if not rows:
             return []

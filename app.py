@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime
 
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash
@@ -102,11 +103,14 @@ def profile():
 
     user_id = session["user_id"]
     user = get_user_by_id(user_id)
-    summary = get_summary_stats(user_id)
 
-    transactions = get_recent_transactions(user_id)
+    start_date, end_date = _parse_date_range(
+        request.args.get("start_date"), request.args.get("end_date")
+    )
 
-    breakdown = get_category_breakdown(user_id)
+    summary = get_summary_stats(user_id, start_date, end_date)
+    transactions = get_recent_transactions(user_id, start_date, end_date)
+    breakdown = get_category_breakdown(user_id, start_date, end_date)
 
     return render_template(
         "profile.html",
@@ -114,7 +118,27 @@ def profile():
         summary=summary,
         transactions=transactions,
         breakdown=breakdown,
+        start_date=start_date,
+        end_date=end_date,
     )
+
+
+def _parse_date_range(start_date, end_date):
+    """Validate a start/end date pair (YYYY-MM-DD strings from query args).
+
+    Returns (start_date, end_date) unchanged if both are present, well
+    formed, and start_date <= end_date. Otherwise returns (None, None) so
+    callers fall back to unfiltered, all-time data."""
+    if not start_date or not end_date:
+        return None, None
+    try:
+        start = datetime.strptime(start_date, "%Y-%m-%d")
+        end = datetime.strptime(end_date, "%Y-%m-%d")
+    except ValueError:
+        return None, None
+    if start > end:
+        return None, None
+    return start_date, end_date
 
 
 @app.route("/expenses/add")
